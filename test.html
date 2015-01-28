@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Effect demo</title>
+	<style>
+	body {
+		background: #081932;
+	}
+
+	.original, .effect {
+		display: inline-block;
+		margin-right: 50px;
+	}
+	</style>
+</head>
+<body>
+	<section>
+		<div class="original"></div>
+		<div class="effect"></div>
+	</section>
+	<script src="./dist/glitch.js"></script>
+	<script>
+	glitch('./img/sample.png', 'channelOffset', document.querySelector('section'));
+	</script>
+</body>
+</html>
