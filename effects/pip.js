@@ -13,5 +13,6 @@ export default function effect(canvas, state) {
 effect.config = {
 	amount: 1,
 	height: {min: '30%', max: '50%'},
-	ttl: 200
+	ttl: 200,
+	delay: 600
 };

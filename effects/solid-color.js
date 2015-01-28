@@ -38,7 +38,7 @@ export default function effect(canvas, state) {
 };
 
 effect.config = {
-	amount: 4,
+	amount: 50,
 	height: {min: 4, max: 8},
 	ttl: 300
 };

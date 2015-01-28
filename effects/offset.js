@@ -62,7 +62,9 @@ export function offsetXY(canvas, state) {
 }
 
 offset.config = offsetX.config = offsetY.config = offsetXY.config = {
-	amount: 3,
-	height: '40%',
-	ttl: 500
+	amount: 10,
+	height: '30%',
+	ttl: 500,
+	delay: 700,
+	baseValue: {min: 0.1, max: 0.3}
 };

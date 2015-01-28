@@ -11,10 +11,10 @@ var nativeBlending = null;
 function supportsNativeBlending(ctx) {
 	if (nativeBlending === null) {
 		// проверим, поддерживается ли нативное смешение цветов
-		var oldOp = ctx.globalCompositeOperation;
+		ctx.save();
 		ctx.globalCompositeOperation = 'screen';
 		nativeBlending = ctx.globalCompositeOperation === 'screen';
-		ctx.globalCompositeOperation = oldOp;
+		ctx.restore();
 	}
 
 	return nativeBlending;
@@ -58,7 +58,7 @@ export default function effect(canvas, state) {
 }
 
 effect.config = {
-	amount: 5,
+	amount: 50,
 	height: {min: 3, max: 15},
 	ttl: 500
 };

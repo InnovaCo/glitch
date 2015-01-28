@@ -16,12 +16,18 @@
 </head>
 <body>
 	<section>
-		<div class="original"></div>
+		<div class="original"><img src="./img/sample2.jpg" height="188" width="250" alt="" /></div>
 		<div class="effect"></div>
 	</section>
 	<script src="./dist/glitch.js"></script>
 	<script>
-	glitch('./img/sample.png', 'channelOffset', document.querySelector('section'));
+	(function() {
+		var img = document.querySelector('.original img');
+		var canvas = glitch(img.src, 20, ['channelOffset', 'offsetX', 'pip']);
+		// var canvas = glitch(img.src, 20);
+		document.querySelector('.effect').appendChild(canvas);
+		
+	})();
 	</script>
 </body>
 </html>

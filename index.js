@@ -1,4 +1,6 @@
 import {rand, extend, createCanvas} from './lib/utils';
+import config from './lib/config';
+
 import saturation from './effects/saturation';
 import solidColor from './effects/solid-color';
 import pip from './effects/pip';
@@ -17,45 +19,98 @@ function draw(target, effect, state) {
 }
 
 function createState(image, params = {}) {
+	var fxHeight = params.height || 1;
 	return extend({
 		image: image,
 		imageWidth: image.width, 
 		imageHeight: image.height,
-		value: 0
+		width: image.width,
+		value: 0,
+		baseValue: rand(0.5, 1),
+		decay: rand(0.05, 0.1),
+		delay: 0,
+		x: 0,
+		y: 0,
+		yOrigin: rand(0, image.height - fxHeight) | 0,
+		yDelta: rand(0, image.height / 2),
+		minSkipFrame: 2,
+		maxSkipFrame: 10,
+		skipFrame: 0
 	}, params);
 }
 
-function setup(img, effect, ctx) {
-	var target = createCanvas(img.width, img.height);
-	var targetCtx = target.getContext('2d');
+function animate(ctx, image, effects, startTime = Date.now()) {
+	var now = Date.now();
+	var timeDelta = now - startTime;
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.drawImage(image, 0, 0);
+	var didDraw = false;
+	effects.forEach(obj => {
+		// debugger;
+		let {state} = obj;
 
-	var state = createState(img, {
-		value: 0.2,
-		x: 0,
-		y: 30,
-		width: img.width,
-		height: 6
+		if (state.delay > timeDelta || !state.baseValue) {
+			return;
+		}
+
+		didDraw = true;
+		ctx.save();
+		if (--state.skipFrame <= 0) {
+			state.baseValue = Math.max(state.baseValue - state.decay, 0);
+			state.value = rand(-state.baseValue, state.baseValue);
+			state.y = Math.max(Math.min(state.yOrigin + rand(-state.yDelta, state.yDelta), state.imageHeight - state.height), 0) | 0;
+			state.skipFrame = rand(state.minSkipFrame, state.maxSkipFrame) | 0
+		}
+		obj.fn(ctx, state);
+		ctx.restore();
 	});
 
-	var active = false;
-	if (ctx) {
-		ctx.querySelector('.original').appendChild(img);
-		ctx.querySelector('.effect').appendChild(target);
+	if (didDraw) {
+		requestAnimationFrame(() => animate(ctx, image, effects, startTime));
 	}
-
-	document.addEventListener('click', (evt) => active = false);
-
-	var mainLoop = () => {
-		state.value = (state.value - 0.01) % 1;
-		draw(targetCtx, effects[effect], state);
-		active && requestAnimationFrame(mainLoop);
-	};
-
-	mainLoop();
 }
 
-export default function(image, effect, ctx) {
+function generateEffects(img, maxEffects, available = Object.keys(effects)) {
+	var effectConfigs = available.map(name => config.normalize(effects[name].config, img));
+	var curEffects = [];
+	var effectsLookup = {};
+	var loopProtect = 10000;
+
+	while (maxEffects && loopProtect--) {
+		let fx = rand(0, available.length) | 0;
+		let fxName = available[fx];
+		let fxConfig = effectConfigs[fx];
+
+		if (!(fxName in effectsLookup)) {
+			effectsLookup[fxName] = 0;
+		}
+
+		if ((effectsLookup[fxName] || 0) >= fxConfig.amount) {
+			continue;
+		}
+
+		effectsLookup[fxName]++;
+		maxEffects--;
+		curEffects.push({
+			name: fxName,
+			fn: effects[fxName],
+			state: createState(img, config.randomize(fxConfig))
+		});
+	}
+
+	return curEffects;
+}
+
+export default function(image, amount = 10, available = Object.keys(effects)) {
+	var cv = createCanvas(100, 100);
 	var img = new Image();
-	img.onload = () => setup(img, effect, ctx);
+	img.onload = () => {
+		cv.width = img.width;
+		cv.height = img.height;
+		var fx = generateEffects(img, amount, available);
+
+		animate(cv.getContext('2d'), img, fx);
+	};
 	img.src = image;
+	return cv;
 };
