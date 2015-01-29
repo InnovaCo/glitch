@@ -2,7 +2,7 @@
  * Заливает область сплошным цветом, кое-где оставляя дырки
  */
 import {Color} from '../lib/color';
-import {rand} from '../lib/utils';
+import {rand, perlin} from '../lib/utils';
 
 function pickColor(canvas, state) {
 	var [r, g, b, total] = [0, 0, 0, 0];
@@ -22,7 +22,7 @@ function pickColor(canvas, state) {
 	return new Color((r / total)|0, (g / total)|0, (b / total)|0);
 }
 
-export default function effect(canvas, state) {
+export default function effect(canvas, state, time) {
 	if (!state.solidColor) {
 		state.solidColor = pickColor(canvas, state);
 	}
@@ -30,7 +30,8 @@ export default function effect(canvas, state) {
 	canvas.fillStyle = state.solidColor.toCSS();
 	canvas.fillRect(state.x, state.y, state.width, state.height);
 
-	var holes = rand(2, 8)|0;
+	var holes = rand(4, 15)|0;
+	// var holes = (perlin(0, time / 100) * 10  + 4) |0;
 	var size = rand(state.height / 2, state.height)|0;
 	while (holes--) {
 		canvas.clearRect(rand(0, state.width)|0, state.y + rand(0, state.height)|0, (rand(0.5, 3) * size)|0, (rand(0.5, 1) * size)|0);
