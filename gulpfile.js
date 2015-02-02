@@ -27,8 +27,12 @@ gulp.task('js-video', function() {
 	return compileJS('./video-glitch.js', './dist/video-glitch.js');
 });
 
+gulp.task('widget', function() {
+	return compileJS('./glitch-widget.js', './dist/glitch-widget.js');
+});
+
 gulp.task('watch', function() {
 	gulp.watch(['./*.js', './{lib,effects}/*.js'], ['default']);
 });
 
-gulp.task('default', ['js-main', 'js-video'])
+gulp.task('default', ['js-main', 'js-video', 'widget'])

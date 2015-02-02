@@ -22,20 +22,19 @@ function generateEffects(img) {
 		effect(img, saturation, {
 			y: 0,
 			height: img.height,
-			minSkipFrame: 2,
-			maxSkipFrame: 7,
-			baseValue: 0.3
+			minSkipFrame: 6,
+			maxSkipFrame: 10,
+			baseValue: 0.7
 		}),
 		effect(img, offsetY, {
 			y: 0,
-			minSkipFrame: 20,
-			maxSkipFrame: 40,
+			minSkipFrame: 40,
+			maxSkipFrame: 80,
 			baseValue: 0.06,
 			ttl: 40,
 			height: img.height,
 			_startTime: 0,
 			reset: function(time) {
-				// seed(Math.random());
 				this._startTime = time;
 				this.ttl = rand(20, 120);
 			},
@@ -51,15 +50,15 @@ function generateEffects(img) {
 		})
 	];
 
-	var num = rand(3, 7) | 0;
-	while (num--) {
-		fx.push(effect(img, channelOffset, {
-			minSkipFrame: 5,
-			maxSkipFrame: 9
-		}));
-	}
+	var num = rand(8, 16) | 0;
+	// while (num--) {
+	// 	fx.push(effect(img, channelOffset, {
+	// 		minSkipFrame: 5,
+	// 		maxSkipFrame: 9
+	// 	}));
+	// }
 
-	num = rand(3, 7) | 0;
+	num = rand(8, 16) | 0;
 	while (num--) {
 		fx.push(effect(img, solidColor, {
 			minSkipFrame: 4,
@@ -68,46 +67,68 @@ function generateEffects(img) {
 		}));
 	}
 
-	fx.push(effect(img, offsetX, {
-		minSkipFrame: 80,
-		maxSkipFrame: 160,
-		baseValue: 0.5,
-		height: 80,
-		ttl: 40,
-		_startTime: 0,
-		reset: function(time) {
-			let h = rand(40, 60);
-			this._startTime = time;
-			this.ttl = rand(80, 120);
-			this.height = h;
-			this.y = rand(0, this.imageHeight - h);
-		},
-		update: function(time) {
-			if (time > this._startTime + this.ttl) {
-				return false;
-			}
+	num = rand(4, 10) | 0;
+	while (num--) {
+		fx.push(effect(img, offsetX, {
+			minSkipFrame: 300,
+			maxSkipFrame: 660,
+			baseValue: 0.3,
+			height: 80,
+			ttl: 40,
+			_startTime: 0,
+			_curValue: 0,
+			reset: function(time) {
+				let h = rand(10, 100);
+				this._startTime = time;
+				this.ttl = rand(80, 320);
+				this.height = h;
+				this.y = rand(0, this.imageHeight - h);
+				this._curValue = this.baseValue * perlin(this._startTime / 100, time / 100);
+			},
+			update: function(time) {
+				if (time > this._startTime + this.ttl) {
+					return false;
+				}
 
-			this.value = this.baseValue * perlin(this._startTime / 100, time / 100);
-			return true;
-		}
-	}))
+				// this.value = this.baseValue * perlin(this._startTime / 100, time / 100);
+				this.value = this._curValue;
+				return true;
+			}
+		}));
+	}
 
 	return fx;
 }
 
-export default function(image) {
+function preloadImages(images, callback) {
+	if (!Array.isArray(images)) {
+		images = [images];
+	}
+
+	var loaded = 0, expected = images.length;
+	var onload = () => {
+		if (++loaded >= expected) callback(images)
+	};
+
+	images = images.map(src => {
+		let img = new Image();
+		img.onload = img.onerror = onload;
+		img.src = src;
+		return img;
+	});
+}
+
+export default function(imageSrc, callback) {
 	var cv = createCanvas();
-	var img = new Image();
-	img.onload = () => {
+	preloadImages(imageSrc, (images) => {
+		var img = images[0];
 		cv.width = img.width;
 		cv.height = img.height;
 		var fx = generateEffects(img);
 
-		var anim = renderer.animate(cv.getContext('2d'), img, fx);
-		document.addEventListener('click', function(evt) {
-			anim.toggle();
-		}, false);
-	};
-	img.src = image;
+		var anim = renderer.animate(cv, img, generateEffects(img));
+		anim.allImages = images;
+		callback && callback(anim);
+	});
 	return cv;
 };
