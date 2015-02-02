@@ -35,7 +35,6 @@ export function turnOn() {
 	var images = toArray(container.querySelectorAll('.glitch-images img')).map(img => img.src);
 
 	return glitch(images, function(a) {
-		console.log('got anim', a);
 		anim = a;
 		hide();
 		anim.canvas.className = 'glitch';
