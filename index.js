@@ -1,4 +1,4 @@
-import {rand, createCanvas} from './lib/utils';
+import * as utils from './lib/utils';
 import config from './lib/config';
 import renderer from './lib/renderer';
 
@@ -8,16 +8,34 @@ import pip from './effects/pip';
 import channelOffset from './effects/channel-offset';
 import {offsetX, offsetY, offsetXY} from './effects/offset';
 
-var effects = {saturation, solidColor, pip, offsetX, offsetY, offsetXY, channelOffset};
+export var effects = {saturation, solidColor, pip, offsetX, offsetY, offsetXY, channelOffset};
 
-function generateEffects(img, maxEffects, available = Object.keys(effects)) {
+export function preloadImages(images, callback) {
+	if (!Array.isArray(images)) {
+		images = [images];
+	}
+
+	var loaded = 0, expected = images.length;
+	var onload = () => {
+		if (++loaded >= expected) callback(images);
+	};
+
+	images = images.map(src => {
+		let img = new Image();
+		img.onload = img.onerror = onload;
+		img.src = src;
+		return img;
+	});
+}
+
+export function generate(img, amount = 10, available = Object.keys(effects)) {
 	var effectConfigs = available.map(name => config.normalize(effects[name].config, img));
 	var curEffects = [];
 	var effectsLookup = {};
 	var loopProtect = 10000;
 
-	while (maxEffects && loopProtect--) {
-		let fx = rand(0, available.length) | 0;
+	while (amount && loopProtect--) {
+		let fx = utils.rand(0, available.length) | 0;
 		let fxName = available[fx];
 		let fxConfig = effectConfigs[fx];
 
@@ -30,7 +48,7 @@ function generateEffects(img, maxEffects, available = Object.keys(effects)) {
 		}
 
 		effectsLookup[fxName]++;
-		maxEffects--;
+		amount--;
 		curEffects.push({
 			name: fxName,
 			fn: effects[fxName],
@@ -41,16 +59,28 @@ function generateEffects(img, maxEffects, available = Object.keys(effects)) {
 	return curEffects;
 }
 
-export default function(image, amount = 10, available = Object.keys(effects)) {
-	var cv = createCanvas(100, 100);
-	var img = new Image();
-	img.onload = () => {
+export default function main(imageSrc, options, callback) {
+	if (typeof options === 'function') {
+		callback = options;
+		options = null;
+	}
+
+	options = options || {};
+
+	var cv = utils.createCanvas();
+	preloadImages(imageSrc, (images) => {
+		var img = images[0];
 		cv.width = img.width;
 		cv.height = img.height;
-		var fx = generateEffects(img, amount, available);
 
-		renderer.animate(cv.getContext('2d'), img, fx);
-	};
-	img.src = image;
+		var genfx = options.generate || generate;
+		var anim = renderer.animate(cv, img, genfx(img, options.amount, options.effects));
+		anim.allImages = images;
+		callback && callback(anim);
+	});
 	return cv;
 };
+
+main.utils = utils;
+main.config = config;
+main.renderer = renderer;
