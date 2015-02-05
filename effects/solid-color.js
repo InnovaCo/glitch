@@ -27,7 +27,7 @@ export default function effect(canvas, state, time) {
 		state.solidColor = pickColor(canvas, state);
 	}
 
-	canvas.fillStyle = state.solidColor.toCSS();
+	canvas.fillStyle = state.solidColor.toString();
 	canvas.fillRect(state.x, state.y, state.width, state.height);
 
 	var holes = rand(4, 15)|0;

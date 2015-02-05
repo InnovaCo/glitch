@@ -21,10 +21,16 @@ export function preloadImages(images, callback) {
 	};
 
 	images = images.map(src => {
-		let img = new Image();
-		img.onload = img.onerror = onload;
-		img.src = src;
-		return img;
+		if (typeof src === 'string') {
+			let img = new Image();
+			img.onload = img.onerror = onload;
+			img.src = src;
+			return img;
+		} else {
+			onload();
+		}
+
+		return src;
 	});
 }
 

@@ -20,6 +20,9 @@ export function offset(ctx, xOffset, yOffset, state) {
 	xOffset = ((1 + xOffset) * width % width)|0;
 	yOffset = ((1 + yOffset) * height % height)|0;
 
+	width |= 0;
+	height |= 0;
+
 	state.buffer.width = width;
 	state.buffer.height = height;
 	state.buffer.getContext('2d').drawImage(ctx.canvas, x, y, width, height, 0, 0, width, height);
