@@ -1,6 +1,6 @@
 import * as utils from './lib/utils';
-import config from './lib/config';
-import renderer from './lib/renderer';
+import * as renderer from './lib/renderer';
+import * as config from './lib/config';
 
 import saturation from './effects/saturation';
 import solidColor from './effects/solid-color';
@@ -87,6 +87,7 @@ export default function main(imageSrc, options, callback) {
 	return cv;
 };
 
+main.effects = effects;
 main.utils = utils;
 main.config = config;
 main.renderer = renderer;
